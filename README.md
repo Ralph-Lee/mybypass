@@ -1,0 +1,2 @@
+# mybypass
+bypass cn domain
