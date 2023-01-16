@@ -19,8 +19,6 @@ cd $BYPASS_PATH/
 echo "CURRENT PATH: ${PWD}"
 
 if [[ ! -r "$CN_DOMAIN_FILENAME" ]]; then echo 'ERROR: $CN_DOMAIN_FILENAME file can not read!'; exit 1; fi
-if [[ ! -r "$CN_CIDR4_FILENAME" ]]; then echo 'ERROR: $CN_CIDR4_FILENAME file can not read!'; exit 1; fi
-if [[ ! -r "$CN_CIDR6_FILENAME" ]]; then echo 'ERROR: $CN_CIDR6_FILENAME file can not read!'; exit 1; fi
 
 OLD_FILE_SHA1ID=$(/usr/bin/git rev-parse HEAD:${CN_DOMAIN_FILENAME})
 /usr/bin/git pull --ff --ff-only
@@ -30,20 +28,31 @@ if [ "$OLD_CRL_SHA1ID" == "$NEW_CRL_SHA1ID" ] ; then
     echo '-----------------------------------------'
     echo "- $CN_DOMAIN_FILENAME NOT CHANGE, EXIT. -"
     echo '-----------------------------------------'
-    cd $ORI_PATH && echo "CURRENT PATH: ${PWD}"
-    exit 0
+    #exit 0
 fi
+
+if [[ ! -r "$CN_DOMAIN_FILENAME" ]]; then echo 'ERROR: $CN_DOMAIN_FILENAME file can not read!'; exit 1; fi
+if [[ ! -r "$CN_CIDR4_FILENAME" ]]; then echo 'ERROR: $CN_CIDR4_FILENAME file can not read!'; exit 1; fi
+if [[ ! -r "$CN_CIDR6_FILENAME" ]]; then echo 'ERROR: $CN_CIDR6_FILENAME file can not read!'; exit 1; fi
 
 echo '-----------------------------------------'
 echo "- $CN_DOMAIN_FILENAME CHANGED, UPDATE...."
 echo '-----------------------------------------'
-sudo cp -f $CN_DOMAIN_FILENAME $MY_NG_PATH/
-sudo cp -f $CN_CIDR4_FILENAME $MY_NG_PATH/
-sudo cp -f $CN_CIDR6_FILENAME $MY_NG_PATH/
-echo '-----------------------------------------'
+sudo cp -f $CN_DOMAIN_FILENAME $ORI_PATH/
+sudo cp -f $CN_CIDR4_FILENAME $ORI_PATH/
+sudo cp -f $CN_CIDR6_FILENAME $ORI_PATH/
 cd $ORI_PATH && echo "CURRENT PATH: ${PWD}"
-cat $PWD/mydomain.txt | sudo tee -a $MY_NG_PATH/$CN_DOMAIN_FILENAME
-cat $PWD/mycidr4.txt | sudo tee -a $MY_NG_PATH/$CN_CIDR4_FILENAME
+ITEMP=${PWD}/tmp.txt
+cat $PWD/mydomain.txt | tee $ITEMP > /dev/null
+cat ${PWD}/$CN_DOMAIN_FILENAME | tee -a $ITEMP > /dev/null
+sudo cp -f $ITEMP $MY_NG_PATH/$CN_DOMAIN_FILENAME
+cat $PWD/mycidr4.txt | tee $ITEMP > /dev/null
+cat $PWD/$CN_CIDR4_FILENAME | tee -a $ITEMP > /dev/null
+sudo cp -f $ITEMP $MY_NG_PATH/$CN_CIDR4_FILENAME
+cat $PWD/mycidr6.txt | tee $ITEMP > /dev/null
+cat $PWD/$CN_CIDR6_FILENAME | tee -a $ITEMP > /dev/null
+sudo cp -f $ITEMP $MY_NG_PATH/$CN_CIDR6_FILENAME
+echo '' | tee $ITEMP
 echo '-----------------------------------------'
 sudo chown -R vampire:vampire /opt/www.vhosts.com/
 sudo chmod 755 -R /opt/www.vhosts.com/
